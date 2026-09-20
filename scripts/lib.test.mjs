@@ -7,6 +7,8 @@ import {
   openTianshuPack,
   parseProposal,
   sanitizeTarRel,
+  listingCompat,
+  sortPlugins,
   SHARD_MAX_BYTES,
   WS_MAGIC,
 } from "./lib.mjs";
@@ -84,4 +86,19 @@ test("buildShards splits at 512 but keeps one plugin_id together", () => {
   assert.equal(buildShards(same).length, 1);
   const fat = { plugin_id: "aaa.big", version: "1", description: "x".repeat(SHARD_MAX_BYTES) };
   assert.equal(buildShards([fat, { plugin_id: "bbb.small", version: "1" }]).length, 2);
+});
+
+test("sortPlugins uses semver not lexicographic version", () => {
+  const plugins = [
+    { plugin_id: "alice.av", version: "1.0.10" },
+    { plugin_id: "alice.av", version: "1.0.9" },
+  ];
+  sortPlugins(plugins);
+  assert.equal(plugins[1].version, "1.0.10");
+});
+
+test("listingCompat keeps engines", () => {
+  assert.deepEqual(listingCompat({ engines: { tianshu: ">=1.2.0" } }), {
+    engines: { tianshu: ">=1.2.0" },
+  });
 });
